@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<title>dRive</title>
+<div class="uipopup" id="popupdiv"></div>
+<h1>dRive</h1>
+<hr>
+<div id="f0">
+</div>
+<script>
+	folders[root][2]=0;
+	var tree = {0:{}};
+	var folderLocations = {};
+	var distances = {};
+	Object.keys(folders).forEach(function(folder){
+		console.log(folder);
+		folderLocations[folder] = [folders[folder][2]]
+		while(folderLocations[folder][folderLocations[folder].length-1] != 0){
+			folderLocations[folder].push(folders[folderLocations[folder][folderLocations[folder].length-1]][2]);
+		}
+		folderLocations[folder].pop();
+		distances[folder] = folderLocations[folder].length;
+		folderLocations[folder].reverse();
+	});
+	var items = Object.keys(distances).map(function(key) {
+		return [key, distances[key]];
+	});
+	items.sort(function(first, second) {
+		return second[1] - first[1];
+	});
+	distances = items.reverse();
+	distances.forEach(function(distance){ // generating the tree took me longer than I would like to admit, brain hurty
+		var distanceTravelled = 0;
+		var currPosition = tree[0];
+		while (distanceTravelled < distance[1]){
+			console.log("For Folder " + distance[0] + " Distance Travelled " + distanceTravelled + " Next Position Should Be Folder " + folderLocations[distance[0]][distanceTravelled]);
+			console.log(currPosition);
+			currPosition = currPosition[folderLocations[distance[0]][distanceTravelled]];
+			distanceTravelled++;
+		}
+		currPosition[distance[0]] = {};
+	});
+	function sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+	function createChildDivs(currPosition, currFolder){
+		var rootDiv = document.getElementById("f"+currFolder.toString());
+		var divName = document.createElement("p");
+		var shareFolderButton = document.createElement("button");
+		var notification = document.createElement("p");
+		notification.style.display = "inline";
+		shareFolderButton.innerHTML = "\uD83D\uDD17";
+		shareFolderButton.addEventListener('click',async function (){
+			navigator.clipboard.writeText(window.location.origin+"/folder/" + host.toString() + "/" + folders[currFolder][1]);
+			notification.innerHTML = " Link Copied To Clipboard";
+			await sleep(1000);
+			notification.innerHTML = "";
+		});
+		if(currFolder == 0){
+			divName.innerText = "Files: ";
+		}else{
+			divName.innerText = folders[currFolder][0] + ": ";
+		}
+		divName.style.display = "inline";
+		rootDiv.appendChild(divName);
+		if(currFolder != 0){
+			rootDiv.appendChild(shareFolderButton);
+			rootDiv.appendChild(notification);
+		}
+		rootDiv.appendChild(document.createElement("br"));
+		console.log("On Folder " + currFolder);
+		Object.keys(currPosition).forEach(function(child){
+			console.log("Creating Folder " + child);
+			var newDiv = document.createElement("div");
+			newDiv.id = "f"+child.toString();
+			newDiv.style.marginLeft = "30px";
+			rootDiv.appendChild(newDiv);
+			createChildDivs(currPosition[child],child);
+		});
+	}
+	createChildDivs(tree[0], 0);
+	Object.keys(files).forEach(function(file){
+		if(document.getElementById("f"+files[file][1].toString())){
+			var parentFolder = document.getElementById("f"+files[file][1].toString());
+			var fileLink = document.createElement("a");
+			fileLink.target = "_blank";
+			var shareButton = document.createElement("button");
+			var notification = document.createElement("p");
+			notification.style.display = "inline";
+			shareButton.innerHTML = "\uD83D\uDD17";
+			shareButton.addEventListener('click',async function (){
+				navigator.clipboard.writeText(window.location.origin+"/file/" + host.toString() + "/" + file + "/" + files[file][0]);
+				notification.innerHTML = " Link Copied To Clipboard";
+				await sleep(1000);
+				notification.innerHTML = "";
+			});
+			fileLink.href = "/file/" + host.toString() + "/" + file + "/" + files[file][0];
+			fileLink.id = "file"+file.toString();
+			shareButton.id = "file@"+file.toString();
+			notification.id = "file#"+file.toString();
+			var br = document.createElement("br");
+			br.id = "file$"+file.toString();
+			fileLink.innerHTML = files[file][0] + " ";
+			fileLink.style.marginLeft = "30px";
+			parentFolder.appendChild(fileLink);
+			parentFolder.appendChild(shareButton);
+			parentFolder.appendChild(notification);
+			parentFolder.appendChild(br);
+		}
+	});
+</script>

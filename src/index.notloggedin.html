@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<title>dRive</title>
+<h1>dRive</h1>
+<hr>
+<div style="overflow: hidden;">
+	<div style="float: left;">
+		<form>
+			<input id="reguname" type="text" placeholder="Username"><br>
+			<input id="regpassw" type="password" placeholder="Password"><br>
+			<button type="button" onclick="register();">Register</button>
+		</form>
+	</div>
+	<div style="float: left;">
+		<form>
+			<input id="loguname" type="text" placeholder="Username"><br>
+			<input id="logpassw" type="password" placeholder="Password"><br>
+			<button type="button" onclick="login();">Log In</button>
+		</form>
+	</div>
+</div>
+<p id="result"></p>
+<script>
+	function sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+	async function login(){
+		const response = await fetch("/login", {method: 'POST',
+			headers:{
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				uName: document.getElementById("loguname").value,
+				password: document.getElementById("logpassw").value
+			})
+		});
+		var result = await response.json();
+		if (result.type == "error"){
+			document.getElementById("result").innerText = result.response;
+		} else {	
+			document.getElementById("result").innerText = "Logging You In!";
+			await sleep(1000);
+			location.reload(true);
+		}
+	}
+	var tempPass = "";
+	async function register(){
+		var bypass = "false";
+		if(tempPass != "" && tempPass == document.getElementById("regpassw").value && document.getElementById("reguname").value != ""){
+			bypass = "true";
+		}
+		tempPass = document.getElementById("regpassw").value;
+		const response = await fetch("/register", {method: 'POST',
+			headers:{
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				uName: document.getElementById("reguname").value,
+				password: document.getElementById("regpassw").value,
+				passlenbypass: bypass
+			})
+		});
+		var result = await response.json();
+		if (result.type == "error"){
+			document.getElementById("result").innerText = result.response;
+		} else {
+			document.getElementById("result").innerText = "Logging You In!";
+			await sleep(1000);
+			location.reload(true);
+		}
+	}
+</script>

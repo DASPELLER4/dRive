@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<title>dRive</title>
+<style>
+	.uipopup{
+		position:absolute;
+		top:25%;
+		width:50%;
+		left:50%;
+		z-index:1000;
+		margin-left: -25%;
+		overflow:hidden;
+	}
+	.userhelp{
+		position:absolute;
+		top:0;
+		right:0;
+	}
+</style>
+<div class="userhelp"><p id="username">You Are Logged In As </p><button onclick='document.cookie = "token=;expires=Thu, 01-Jan-70 00:00:01 GMT;"; window.location.reload()'>Log Out</button></div>
+<div class="uipopup" id="popupdiv"></div>
+<h1>dRive</h1>
+<hr>
+<div id="f0">
+</div>
+<script>
+	document.getElementById("username").innerHTML += uName;
+	var tree = {0: {}};
+	var folderLocations = {};
+	var distances = {};
+	Object.keys(folders).forEach(function(folder){
+		folderLocations[folder] = [folders[folder][2]]
+		while(folderLocations[folder][folderLocations[folder].length-1] != 0){
+			folderLocations[folder].push(folders[folderLocations[folder][folderLocations[folder].length-1]][2]);
+		}
+		folderLocations[folder].pop();
+		distances[folder] = folderLocations[folder].length;
+		folderLocations[folder].reverse();
+	});
+	var items = Object.keys(distances).map(function(key) {
+		return [key, distances[key]];
+	});
+	items.sort(function(first, second) {
+		return second[1] - first[1];
+	});
+	distances = items.reverse();
+	distances.forEach(function(distance){ // generating the tree took me longer than I would like to admit, brain hurty
+		var distanceTravelled = 0;
+		var currPosition = tree[0];
+		while (distanceTravelled < distance[1]){
+			console.log("For Folder " + distance[0] + " Distance Travelled " + distanceTravelled + " Next Position Should Be Folder " + folderLocations[distance[0]][distanceTravelled]);
+			console.log(currPosition);
+			currPosition = currPosition[folderLocations[distance[0]][distanceTravelled]];
+			distanceTravelled++;
+		}
+		currPosition[distance[0]] = {};
+	});
+	function sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+	async function openFilesUI(currFolder){
+		if(document.getElementById("uploadFileUI")){
+			document.getElementById("popupdiv").removeChild(document.getElementById("uploadFileUI"));
+			document.getElementById("popupdiv").removeChild(document.getElementById("closeFileUI"));
+		}
+		var closeButton = document.createElement("button");
+		var fileIframe = document.createElement("iframe");
+		fileIframe.src = "/uploadFileUI?pFId="+currFolder.toString();
+		fileIframe.id = "uploadFileUI";
+		fileIframe.width = "98%";
+		fileIframe.heigt = "90%";
+		document.getElementById("popupdiv").innerHTML = "";
+		closeButton.innerHTML = "X";
+		closeButton.id = "closeFileUI";
+		closeButton.addEventListener('click', ()=> {
+			closeButton.parentNode.removeChild(closeButton);
+			fileIframe.parentNode.removeChild(fileIframe);
+		});
+		document.getElementById("popupdiv").appendChild(closeButton);
+		document.getElementById("popupdiv").appendChild(document.createElement("br"));
+		document.getElementById("popupdiv").appendChild(fileIframe);
+		var timer = setInterval(function () {
+			if (document.getElementById("uploadFileUI"))
+				if (document.getElementById("uploadFileUI").contentWindow.document.getElementById("resp")){
+					var result = JSON.parse(document.getElementById("uploadFileUI").contentWindow.document.getElementById("resp").innerHTML)
+					if(result["type"] == "success"){
+						Object.keys(result["data"]).forEach(function(fileAdded){
+							var parentFolder = document.getElementById("f"+result["data"][fileAdded][1].toString());
+							var fileLink = document.createElement("a");
+							fileLink.target = "_blank";
+							var shareButton = document.createElement("button");
+							var delFileButton = document.createElement("button");
+							var notification = document.createElement("p");
+							delFileButton.innerHTML = "\uD83D\uDDD1";
+							shareButton.innerHTML = "\uD83D\uDD17";
+							fileLink.id = "file"+fileAdded.toString();
+							fileLink.href = "/file/" + uId.toString() + "/" + fileAdded + "/" + result["data"][fileAdded][0];
+							fileLink.innerHTML = result["data"][fileAdded][0]+" ";
+							fileLink.style.marginLeft = "30px";
+							delFileButton.id = "file!"+fileAdded.toString();
+							shareButton.id = "file@"+fileAdded.toString();
+							notification.id = "file#"+fileAdded.toString();
+							notification.style.display="inline";
+							shareButton.addEventListener('click',async function (){
+								navigator.clipboard.writeText(window.location+"file/" + uId.toString() + "/" + fileAdded + "/" + result["data"][fileAdded][0]);
+								notification.innerHTML = " Link Copied To Clipboard";
+								await sleep(1000);
+								notification.innerHTML = "";
+							});
+							delFileButton.addEventListener('click', async function(){
+								deleteFile(fileAdded);
+							});
+							var br = document.createElement("br");
+							br.id = "file$"+fileAdded.toString();
+							parentFolder.appendChild(fileLink);
+							parentFolder.appendChild(shareButton);
+							parentFolder.appendChild(delFileButton);
+							parentFolder.appendChild(notification);
+							parentFolder.appendChild(br);
+						});
+						document.getElementById("popupdiv").removeChild(document.getElementById("uploadFileUI"));
+						document.getElementById("popupdiv").removeChild(document.getElementById("closeFileUI"));
+					}
+					clearInterval(timer);
+				}
+		}, 200);
+	}
+	async function deleteFile(file){
+		var response = await fetch("/deletefile", {method: 'POST',
+			headers:{
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				fileId: file
+			})
+		});	
+		var result = await response.json();
+		if(result["type"] == "success"){
+			document.getElementById("file"+file.toString()).parentNode.removeChild(document.getElementById("file"+file.toString()));
+			document.getElementById("file!"+file.toString()).parentNode.removeChild(document.getElementById("file!"+file.toString()));
+			document.getElementById("file@"+file.toString()).parentNode.removeChild(document.getElementById("file@"+file.toString()));
+			document.getElementById("file$"+file.toString()).parentNode.removeChild(document.getElementById("file$"+file.toString()));
+		} else {
+			alert(result["response"]);
+		}
+	}
+	async function deleteFolder(folder){
+		var response = await fetch("/deletefolder", {method: 'POST',
+			headers:{
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				folderId: folder
+			})
+		});
+		var result = await response.json();
+		if(result["type"] == "success"){
+			document.getElementById("f"+folder.toString()).parentNode.removeChild(document.getElementById("f"+folder.toString()));
+		} else {
+			alert(result["response"]);
+		}
+	}
+	async function createFolder(rootFolder){
+		var folderName = prompt("Enter Folder Name","");
+		if(folderName===null){return 0;}
+		var response = await fetch("/createfolder", {method: 'POST',
+			headers:{
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				folderName: folderName,
+				folderParent: rootFolder
+			})
+		});
+		var result = await response.json();
+		if(result["type"] == "success"){
+			var rootDiv = document.getElementById("f"+rootFolder.toString());	
+			var divName = document.createElement("p");
+			var addFolderButton = document.createElement("button");
+			var delFolderButton = document.createElement("button");
+			var addFileButton = document.createElement("button");
+			var shareFolderButton = document.createElement("button");
+			var notification = document.createElement("p");
+			notification.style.display = "inline";
+			shareFolderButton.innerHTML = "\uD83D\uDD17";
+			shareFolderButton.addEventListener('click',async function (){
+				navigator.clipboard.writeText(window.location+"folder/" + uId.toString() + "/" + folders[result["data"]["fId"]][1]);
+				notification.innerHTML = " Link Copied To Clipboard";
+				await sleep(1000);
+				notification.innerHTML = "";
+			});
+			divName.style.display = "inline";
+			addFolderButton.addEventListener('click', () => {
+				createFolder(result["data"]["fId"]);
+			});
+			folders[result["data"]["fId"]] = [folderName, result["data"]["fShare"], result["data"]["fId"]];
+			delFolderButton.addEventListener('click', () => {
+				if(confirm("Are You Sure You Want To Delete \"" + folders[result["data"]["fId"]][0] + "\"?"))
+					deleteFolder(result["data"]["fId"]);
+			});
+			addFileButton.addEventListener('click', () => {
+				openFilesUI(result["data"]["fId"]);
+			});
+			delFolderButton.innerHTML = "\uD83D\uDDD1";
+			addFolderButton.innerHTML = "+\uD83D\uDCC1";
+			addFileButton.innerHTML = "+\uD83D\uDCC4";
+			var newDiv = document.createElement("div");
+			divName.innerText = folderName + ": ";
+			newDiv.appendChild(divName);
+			newDiv.appendChild(addFolderButton);
+			newDiv.appendChild(addFileButton);
+			newDiv.appendChild(shareFolderButton);
+			newDiv.appendChild(delFolderButton);
+			newDiv.appendChild(notification);
+			newDiv.id = "f"+result["data"]["fId"].toString();
+			newDiv.style.marginLeft = "30px";
+			rootDiv.appendChild(newDiv);
+			newDiv.appendChild(document.createElement("br"));
+		}else{
+			alert(result["response"]);
+		}
+	}
+	function createChildDivs(currPosition, currFolder){
+		var rootDiv = document.getElementById("f"+currFolder.toString());
+		var divName = document.createElement("p");
+		var addFolderButton = document.createElement("button");
+		var addFileButton = document.createElement("button");
+		var delFolderButton = document.createElement("button");
+		var shareFolderButton = document.createElement("button");
+		var notification = document.createElement("p");
+		notification.style.display = "inline";
+		shareFolderButton.innerHTML = "\uD83D\uDD17";
+		shareFolderButton.addEventListener('click',async function (){
+			navigator.clipboard.writeText(window.location+"folder/" + uId.toString() + "/" + folders[currFolder][1]);
+			notification.innerHTML = " Link Copied To Clipboard";
+			await sleep(1000);
+			notification.innerHTML = "";
+		});
+		if(currFolder == 0){
+			divName.innerText = "Your Files: ";
+		}else{
+			divName.innerText = folders[currFolder][0] + ": ";
+		}
+		divName.style.display = "inline";
+		addFolderButton.addEventListener('click', () => {
+			createFolder(currFolder);
+		});
+		delFolderButton.addEventListener('click', () => {
+			if(confirm("Are You Sure You Want To Delete \"" + folders[currFolder][0] + "\"?")){
+				deleteFolder(currFolder);
+				rootDiv.removeChild(notification);
+			}
+		});
+		addFileButton.addEventListener('click', () => {
+			openFilesUI(currFolder);
+		});
+		delFolderButton.innerHTML = "\uD83D\uDDD1";
+		addFolderButton.innerHTML = "+\uD83D\uDCC1";
+		addFileButton.innerHTML = "+\uD83D\uDCC4";
+		rootDiv.appendChild(divName);
+		rootDiv.appendChild(addFolderButton);
+		rootDiv.appendChild(addFileButton);
+		if(currFolder != 0){
+			rootDiv.appendChild(shareFolderButton);
+			rootDiv.appendChild(delFolderButton);
+			rootDiv.appendChild(notification);
+		}
+		rootDiv.appendChild(document.createElement("br"));
+		console.log("On Folder " + currFolder);
+		Object.keys(currPosition).forEach(function(child){
+			console.log("Creating Folder " + child);
+			var newDiv = document.createElement("div");
+			newDiv.id = "f"+child.toString();
+			newDiv.style.marginLeft = "30px";
+			rootDiv.appendChild(newDiv);
+			createChildDivs(currPosition[child],child);
+		});
+	}
+	createChildDivs(tree[0], 0);
+	Object.keys(files).forEach(function(file){
+		if(document.getElementById("f"+files[file][1].toString())){
+			var parentFolder = document.getElementById("f"+files[file][1].toString());
+			var fileLink = document.createElement("a");
+			fileLink.target = "_blank";
+			var delFileButton = document.createElement("button");
+			var shareButton = document.createElement("button");
+			var notification = document.createElement("p");
+			notification.style.display = "inline";
+			delFileButton.innerHTML = "\uD83D\uDDD1";
+			shareButton.innerHTML = "\uD83D\uDD17";
+			shareButton.addEventListener('click',async function (){
+				navigator.clipboard.writeText(window.location+"file/" + uId.toString() + "/" + file + "/" + files[file][0]);
+				notification.innerHTML = " Link Copied To Clipboard";
+				await sleep(1000);
+				notification.innerHTML = "";
+			});
+			delFileButton.addEventListener('click', async function(){
+				deleteFile(file);
+			});
+			fileLink.href = "/file/" + uId.toString() + "/" + file + "/" + files[file][0];
+			fileLink.id = "file"+file.toString();
+			delFileButton.id = "file!"+file.toString();
+			shareButton.id = "file@"+file.toString();
+			notification.id = "file#"+file.toString();
+			var br = document.createElement("br");
+			br.id = "file$"+file.toString();
+			fileLink.innerHTML = files[file][0] + " ";
+			fileLink.style.marginLeft = "30px";
+			parentFolder.appendChild(fileLink);
+			parentFolder.appendChild(shareButton);
+			parentFolder.appendChild(delFileButton);
+			parentFolder.appendChild(notification);
+			parentFolder.appendChild(br);
+		}
+	});
+</script>
