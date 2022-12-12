@@ -2,7 +2,7 @@
 A file hosting web application similar to google drive and other such services. Has many features to make the user experience as comfortable as possible.
 The software uses mysql to store all the folder structure and user data and file information to keep all data easily accessible and managable by an administrator, with all files being stored in a single folder.
 
-<img src="https://daspeller4.xyz/file/2/5910a1a886fe64d4609ed393ae7c069f/2022-12-12_21-10.png">
+<img src="https://daspeller4.xyz/file/2/d2f2e9885047877711196f408cb4d5b6/2022-12-12_21-10.png">
 
 # Setup
 Dependencies:
