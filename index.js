@@ -192,7 +192,7 @@ app.post('/uploadfiles', async function(req,res){
 					if(req.files.files.tempFilePath){
 						try{
 							fs.renameSync(req.files.files.tempFilePath, path)
-							con.query("INSERT INTO `files` VALUES(?,?,?,?);",[fId,req.files.files.name,result[0].pUId,req.body.pFId],function(err,result,fields){});
+							con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,req.files.files.name,result[0].pUId,req.body.pFId,req.files.files.mimetype],function(err,result,fields){});
 						}catch{}
 					}
 					res.write("\""+fId+"\":[\""+req.files.files.name+"\","+req.body.pFId+"]}}<p>");
@@ -205,7 +205,7 @@ app.post('/uploadfiles', async function(req,res){
 					if(req.files.files[i].tempFilePath){
 						try{
 							fs.renameSync(req.files.files[i].tempFilePath, path)
-							con.query("INSERT INTO `files` VALUES(?,?,?,?);",[fId,req.files.files[i].name,result[0].pUId,req.body.pFId],function(err,result,fields){});					
+							con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,req.files.files[i].name,result[0].pUId,req.body.pFId,req.files.files[i].mimetype],function(err,result,fields){});					
 						}catch{}
 						if(i == req.files.files.length-1){
 							res.write("\""+fId+"\":[\""+req.files.files[i].name+"\","+req.body.pFId+"]");
@@ -225,7 +225,7 @@ app.post('/uploadfiles', async function(req,res){
 				if(req.files.files.tempFilePath){
 					try{
 						fs.renameSync(req.files.files.tempFilePath, path)
-						con.query("INSERT INTO `files` VALUES(?,?,?,?);",[fId,req.files.files.name,result[0].uId,req.body.pFId],function(err,result,fields){});
+						con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,req.files.files.name,result[0].uId,req.body.pFId,req.files.files.mimetype],function(err,result,fields){});
 					}catch{}
 				}
 				res.write("\""+fId+"\":[\""+req.files.files.name+"\","+req.body.pFId+"]}}<p>");
@@ -238,7 +238,7 @@ app.post('/uploadfiles', async function(req,res){
 				if(req.files.files[i].tempFilePath){
 					try{
 						fs.renameSync(req.files.files[i].tempFilePath, path)
-						con.query("INSERT INTO `files` VALUES(?,?,?,?);",[fId,req.files.files[i].name,result[0].uId,req.body.pFId],function(err,result,fields){});
+						con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,req.files.files[i].name,result[0].uId,req.body.pFId,req.files.files[i].mimetype],function(err,result,fields){});
 					}catch{}
 					if(i == req.files.files.length-1){
 						res.write("\""+fId+"\":[\""+req.files.files[i].name+"\","+req.body.pFId+"]");
@@ -364,7 +364,7 @@ app.get('/file/*', function(req,res){
 			console.log(params);
 			return 0;
 		}
-		res.sendFile(path.join(fileStorage+'/'+result[0].fId));
+		res.sendFile(path.join(fileStorage+'/'+result[0].fId), {headers: {'Content-Type': result[0].mimetype}});
 	});
 });
 
