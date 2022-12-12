@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body style="background-color: #AAAAAA">
+<form method="post" action="/uploadfiles" id="form" enctype="multipart/form-data">
+	<input type="file" multiple name="files">
+	<button onclick='document.getElementById("uploading").innerText="Uploading, this may take a while"'>Submit</button>
+</form>
+<p id="uploading"></p>
+<script>
+	var pFIdVal = document.createElement("input");
+	pFIdVal.name = "pFId";
+	pFIdVal.type = "text";
+	pFIdVal.hidden = true;
+	pFIdVal.value = parentFolder.toString();
+	document.getElementById("form").appendChild(pFIdVal);
+</script>
+</body>
+</html>
