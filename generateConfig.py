@@ -10,7 +10,7 @@ password = input("Enter the mysql password for user " + user + ": ")
 port = input("Enter mysql socket (leave blank for /var/run/mysqld/mysqld.sock): ")
 if(not(port)):
     port = "/var/lib/mysqld/mysqld.sock"
-database = input("Enter the name for the dRive database: ")
+database = input("Enter the name for the new dRive database: ")
 downloaddir = input("Enter the location that user files are saved: ")
 cert = input("Enter SSL certificate location (leave blank for no https): ") 
 key = ""
