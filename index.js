@@ -90,7 +90,7 @@ function deleteFile(fileId, fileRealName){
 		if(!err){
 			console.log("Deleting " + fileId);
 		} else {
-			throw err;
+			console.log(err);
 		}
 	});
 	try{
@@ -346,9 +346,14 @@ app.post('/register', function(req,res){
 		}
 		var newToken = crypto.randomBytes(32).toString('hex');
 		var password = bcrypt.hashSync(req.body.password,10);
-		con.query("INSERT INTO `users`(`uName`,`password`,`token`) VALUES (?, ?, ?);",[req.body.uName,password,newToken], function(err,result,fields){if(err)throw err;});
-		res.cookie('token', newToken);
-		res.send("{\"type\":\"success\",\"response\":\"Logged In\"}");
+		con.query("INSERT INTO `users`(`uName`,`password`,`token`) VALUES (?, ?, ?);",[req.body.uName,password,newToken], function(err,result,fields){
+			if(err){
+				res.send("{\"type\":\"error\",\"response\":\"Unknown error occured, please try different values or try again later\"}");
+				return 0;
+			}
+			res.cookie('token', newToken);
+			res.send("{\"type\":\"success\",\"response\":\"Logged In\"}");
+		});
 	});
 });
 
