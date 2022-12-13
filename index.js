@@ -413,3 +413,4 @@ if(config.cert)
 	https.createServer({key: fs.readFileSync(config.key),cert: fs.readFileSync(config.cert)}, app).listen(443);
 else
 	var server = app.listen(80);
+setInterval(()=>{con.query("SELECT 1"); conSync.query("SELECT 1")}, 5000); // keep sql alive
