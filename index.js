@@ -58,7 +58,7 @@ app.get('/', function(req,res){
 		con.query("UPDATE `users` SET `token`=? WHERE `uId`=?;",[newToken,uId], function(err,result,fields){});
 		res.cookie('token', newToken);
 		res.write("<script> var uId = " + uId.toString() + ";var uName = \"" + result[0].uName + "\";</script>")
-		con.query("SELECT * FROM `files` WHERE `pUId`=?;",[uId],function(err,result,fields){
+		con.query("SELECT * FROM `files` WHERE `pUId`=? ORDER BY `fName` ASC;",[uId],function(err,result,fields){
 			var fList = "<script> var files = {";
 			for(let i = 0; i < result.length; i++){
 				fList += "\""+result[i].fId + "\": [\"" + result[i].fName + "\", " + result[i].pFolder + "],";
@@ -67,7 +67,7 @@ app.get('/', function(req,res){
 				res.write(fList + "}; ");
 			else
 				res.write(fList.slice(0,-1) + "}; ");
-			con.query("SELECT * FROM `folders` WHERE `pUId`=?;",[uId],function(err,result,fields){
+			con.query("SELECT * FROM `folders` WHERE `pUId`=? ORDER BY `fName` ASC;",[uId],function(err,result,fields){
 				var FList = "var folders = {";
 				for(let i = 0; i < result.length; i++){
 					FList += result[i].fId.toString() + ": [\"" + result[i].fName + "\",\"" + result[i].fShare + "\", " + result[i].pFolder + "],";
@@ -396,11 +396,11 @@ app.get('/folder/*', function(req,res){
 	for(let z = 0; z < folderList.length; z++){
 		var folder = folderList[z];
 		console.log(folder);
-		var result = conSync.query("SELECT * FROM `files` WHERE `pUId`=? AND `pFolder`=?",[params[0],folder]);
+		var result = conSync.query("SELECT * FROM `files` WHERE `pUId`=? AND `pFolder`=? ORDER BY `fName` ASC",[params[0],folder]);
 		for (let i = 0; i<result.length; i++){
 			files[result[i].fId] = [result[i].fName,result[i].pFolder];
 		}
-		result = conSync.query("SELECT * FROM `folders` WHERE `pUId`=? AND `fId`=?",[params[0],folder]);
+		result = conSync.query("SELECT * FROM `folders` WHERE `pUId`=? AND `fId`=? ORDER BY `fName` ASC",[params[0],folder]);
 		for (let i = 0; i<result.length; i++){
 			folders[result[i].fId] = [result[i].fName,result[i].fShare,result[i].pFolder];
 		}
