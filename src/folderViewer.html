@@ -92,7 +92,7 @@
 				await sleep(1000);
 				notification.innerHTML = "";
 			});
-			fileLink.href = "/file/" + host.toString() + "/" + file + "/" + files[file][0];
+			fileLink.href = "/file/" + host.toString() + "/" + file + "/" + encodeURIComponent(files[file][0]);
 			fileLink.id = "file"+file.toString();
 			shareButton.id = "file@"+file.toString();
 			notification.id = "file#"+file.toString();
