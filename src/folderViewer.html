@@ -57,7 +57,7 @@
 		if(currFolder == 0){
 			divName.innerText = "Files: ";
 		}else{
-			divName.innerText = folders[currFolder][0] + ": ";
+			divName.innerText = decodeURIComponent(folders[currFolder][0]) + ": ";
 		}
 		divName.style.display = "inline";
 		rootDiv.appendChild(divName);
@@ -87,18 +87,18 @@
 			notification.style.display = "inline";
 			shareButton.innerHTML = "\uD83D\uDD17";
 			shareButton.addEventListener('click',async function (){
-				navigator.clipboard.writeText(window.location.origin+"/file/" + host.toString() + "/" + file + "/" + encodeURIComponent(files[file][0]));
+				navigator.clipboard.writeText(window.location.origin+"/file/" + host.toString() + "/" + file + "/" + files[file][0]);
 				notification.innerHTML = " Link Copied To Clipboard";
 				await sleep(1000);
 				notification.innerHTML = "";
 			});
-			fileLink.href = "/file/" + host.toString() + "/" + file + "/" + encodeURIComponent(files[file][0]);
+			fileLink.href = "/file/" + host.toString() + "/" + file + "/" + files[file][0];
 			fileLink.id = "file"+file.toString();
 			shareButton.id = "file@"+file.toString();
 			notification.id = "file#"+file.toString();
 			var br = document.createElement("br");
 			br.id = "file$"+file.toString();
-			fileLink.innerHTML = files[file][0] + " ";
+			fileLink.innerHTML = decodeURIComponent(files[file][0]) + " ";
 			fileLink.style.marginLeft = "30px";
 			parentFolder.appendChild(fileLink);
 			parentFolder.appendChild(shareButton);
