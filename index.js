@@ -90,7 +90,7 @@ function deleteFile(fileId, fileRealName){
 		if(!err){
 			console.log("Deleting " + fileId);
 		} else {
-			console.log(err);
+			throw err;
 		}
 	});
 	try{
@@ -192,10 +192,10 @@ app.post('/uploadfiles', async function(req,res){
 					if(req.files.files.tempFilePath){
 						try{
 							fs.renameSync(req.files.files.tempFilePath, path)
-							con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,req.files.files.name,result[0].pUId,req.body.pFId,req.files.files.mimetype],function(err,result,fields){});
+							con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,encodeURIComponent(req.files.files.name),result[0].pUId,req.body.pFId,req.files.files.mimetype],function(err,result,fields){});
 						}catch{}
 					}
-					res.write("\""+fId+"\":[\""+req.files.files.name+"\","+req.body.pFId+"]}}<p>");
+					res.write("\""+fId+"\":[\""+encodeURIComponent(req.files.files.name)+"\","+req.body.pFId+"]}}<p>");
 					res.end();
 					return 0;
 				}
@@ -205,12 +205,12 @@ app.post('/uploadfiles', async function(req,res){
 					if(req.files.files[i].tempFilePath){
 						try{
 							fs.renameSync(req.files.files[i].tempFilePath, path)
-							con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,req.files.files[i].name,result[0].pUId,req.body.pFId,req.files.files[i].mimetype],function(err,result,fields){});					
+							con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,encodeURIComponent(req.files.files[i].name),result[0].pUId,req.body.pFId,req.files.files[i].mimetype],function(err,result,fields){});					
 						}catch{}
 						if(i == req.files.files.length-1){
-							res.write("\""+fId+"\":[\""+req.files.files[i].name+"\","+req.body.pFId+"]");
+							res.write("\""+fId+"\":[\""+encodeURIComponent(req.files.files[i].name)+"\","+req.body.pFId+"]");
 						} else {
-							res.write("\""+fId+"\":[\""+req.files.files[i].name+"\","+req.body.pFId+"],");
+							res.write("\""+fId+"\":[\""+encodeURIComponent(req.files.files[i].name)+"\","+req.body.pFId+"],");
 						}
 					}
 				}
@@ -225,10 +225,10 @@ app.post('/uploadfiles', async function(req,res){
 				if(req.files.files.tempFilePath){
 					try{
 						fs.renameSync(req.files.files.tempFilePath, path)
-						con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,req.files.files.name,result[0].uId,req.body.pFId,req.files.files.mimetype],function(err,result,fields){});
+						con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,encodeURIComponent(req.files.files.name),result[0].uId,req.body.pFId,req.files.files.mimetype],function(err,result,fields){if(err)console.log(err);});
 					}catch{}
 				}
-				res.write("\""+fId+"\":[\""+req.files.files.name+"\","+req.body.pFId+"]}}<p>");
+				res.write("\""+fId+"\":[\""+encodeURIComponent(req.files.files.name)+"\","+req.body.pFId+"]}}<p>");
 				res.end();
 				return 0;
 			}
@@ -238,12 +238,12 @@ app.post('/uploadfiles', async function(req,res){
 				if(req.files.files[i].tempFilePath){
 					try{
 						fs.renameSync(req.files.files[i].tempFilePath, path)
-						con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,req.files.files[i].name,result[0].uId,req.body.pFId,req.files.files[i].mimetype],function(err,result,fields){});
+						con.query("INSERT INTO `files` VALUES(?,?,?,?,?);",[fId,encodeURIComponent(req.files.files[i].name),result[0].uId,req.body.pFId,req.files.files[i].mimetype],function(err,result,fields){});
 					}catch{}
 					if(i == req.files.files.length-1){
-						res.write("\""+fId+"\":[\""+req.files.files[i].name+"\","+req.body.pFId+"]");
+						res.write("\""+fId+"\":[\""+encodeURIComponent(req.files.files[i].name)+"\","+req.body.pFId+"]");
 					} else {
-						res.write("\""+fId+"\":[\""+req.files.files[i].name+"\","+req.body.pFId+"],");
+						res.write("\""+fId+"\":[\""+encodeURIComponent(req.files.files[i].name)+"\","+req.body.pFId+"],");
 					}
 				}
 			}
@@ -286,7 +286,7 @@ app.post('/createfolder', function(req,res){
 		}
 		if(req.body.folderParent == 0){
 			var share = crypto.randomBytes(10).toString('hex');
-			con.query("INSERT INTO `folders`(`fName`,`pUId`,`fShare`,`pFolder`) VALUES (?,?,?,?);",[req.body.folderName,result[0].uId,share,req.body.folderParent], function(err,result,fields){
+			con.query("INSERT INTO `folders`(`fName`,`pUId`,`fShare`,`pFolder`) VALUES (?,?,?,?);",[encodeURIComponent(req.body.folderName),result[0].uId,share,req.body.folderParent], function(err,result,fields){
 				con.query("SELECT * FROM `folders` WHERE `fId`=?",[result.insertId],function(err,result,fields){
 					res.send("{\"type\":\"success\",\"response\":\"Created Folder Named (" + req.body.folderName + ") Under Folder ID (" + req.body.folderParent + ")\", \"data\": {\"fId\":" + result[0].fId + ", \"fShare\":\"" + result[0].fShare + "\"}}");
 				});
@@ -298,7 +298,7 @@ app.post('/createfolder', function(req,res){
 					return 0;
 				}
 				var share = crypto.randomBytes(10).toString('hex');
-				con.query("INSERT INTO `folders`(`fName`,`pUId`,`fShare`,`pFolder`) VALUES (?,?,?,?);",[req.body.folderName,result[0].pUId,share,req.body.folderParent], function(err,result,fields){
+				con.query("INSERT INTO `folders`(`fName`,`pUId`,`fShare`,`pFolder`) VALUES (?,?,?,?);",[encodeURIComponent(req.body.folderName),result[0].pUId,share,req.body.folderParent], function(err,result,fields){
 					con.query("SELECT * FROM `folders` WHERE `fId`=?",[result.insertId],function(err,result,fields){
 						res.send("{\"type\":\"success\",\"response\":\"Created Folder Named (" + req.body.folderName + ") Under Folder ID (" + req.body.folderParent + ")\", \"data\": {\"fId\":" + result[0].fId + ", \"fShare\":\"" + result[0].fShare + "\"}}");
 					});
@@ -363,10 +363,9 @@ app.get('/file/*', function(req,res){
 		res.status(400).send("<h1>Too Few Arguments</h1><p>Ask For Another Share Link</p>");
 		return 0;
 	}
-	con.query("SELECT * FROM `files` WHERE `pUId`=? AND `fId`=? AND `fName`=?",[params[0],params[1],params[2]],function(err,result,fields){
+	con.query("SELECT * FROM `files` WHERE `pUId`=? AND `fId`=? AND `fName`=?",[params[0],params[1],encodeURIComponent(params[2])],function(err,result,fields){
 		if(result.length == 0){
 			res.status(404).send("<h1>File Not Found</h1><p>Ask For Another Share Link</p>");
-			console.log(params);
 			return 0;
 		}
 		res.sendFile(path.join(fileStorage+'/'+result[0].fId), {headers: {'Content-Type': result[0].mimetype}});
