@@ -432,7 +432,7 @@ app.get('/deleteaccount',function(req,res){
 		con.query("DELETE FROM `folders` WHERE `pUId`=?",[result[0].uId],function (err, result, fields) {});
 		con.query("DELETE FROM `users` WHERE `uId`=?",[result[0].uId],function (err, result, fields) {});
 		res.send("<h1>Sorry To See You Go!</h1><a href='/'>Take Me Home</a>");
-	}
+	});
 });
 
 if(config.cert)
