@@ -413,6 +413,28 @@ app.get('/folder/*', function(req,res){
 	res.write(fs.readFileSync(__dirname+'/src/folderViewer.html', 'utf8'));
 	res.end();
 });
+
+app.get('/deleteaccount',function(req,res){
+	if(!req.cookies.token){
+		res.status(403).send("{\"type\":\"error\",\"response\":\"Not Logged In, Please Try Logging In Again\"}");
+		return 0;
+	}
+	con.query("SELECT * FROM `users` WHERE `token`=?", [req.cookies.token], function (err, result, fields) {
+		if(result.length == 0){
+			res.status(403).send("{\"type\":\"error\",\"response\":\"Invalid Token, Try Logging In Again\"}");
+			return 0;
+		}
+		con.query("SELECT * FROM `files` WHERE `pUId`=?",[result[0].uId],function (err, result, fields) {
+			for(let i = 0; i < result.length; i++){
+				deleteFile(result[i].fId,result[i].fName);
+			}
+		});
+		con.query("DELETE FROM `folders` WHERE `pUId`=?",[result[0].uId],function (err, result, fields) {});
+		con.query("DELETE FROM `users` WHERE `uId`=?",[result[0].uId],function (err, result, fields) {});
+		res.send("<h1>Sorry To See You Go!</h1><a href='/'>Take Me Home</a>");
+	}
+});
+
 if(config.cert)
 	https.createServer({key: fs.readFileSync(config.key),cert: fs.readFileSync(config.cert)}, app).listen(443);
 else
