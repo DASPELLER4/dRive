@@ -248,7 +248,7 @@
 			createFolder(currFolder);
 		});
 		delFolderButton.addEventListener('click', () => {
-			if(confirm("Are You Sure You Want To Delete \"" + folders[currFolder][0] + "\"?")){
+			if(confirm("Are You Sure You Want To Delete \"" + decodeURIComponent(folders[currFolder][0]) + "\"?")){
 				deleteFolder(currFolder);
 				rootDiv.removeChild(notification);
 			}
