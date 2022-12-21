@@ -294,7 +294,7 @@ app.post('/createfolder', function(req,res){
 		} else {
 			con.query("SELECT * FROM `folders` WHERE `pUId`=? AND `fId`=?",[result[0].uId,req.body.folderParent],function(err,result,fields){
 				if(result.length == 0){
-					res.status(403).send("{\"type\":\"error\",\"response\":\"You Do Not Own This Folder Or It Does Not Exist\"}");
+					res.send("{\"type\":\"error\",\"response\":\"You Do Not Own This Folder Or It Does Not Exist\"}");
 					return 0;
 				}
 				var share = crypto.randomBytes(10).toString('hex');
@@ -432,80 +432,6 @@ app.get('/deleteaccount',function(req,res){
 		con.query("DELETE FROM `folders` WHERE `pUId`=?",[result[0].uId],function (err, result, fields) {});
 		con.query("DELETE FROM `users` WHERE `uId`=?",[result[0].uId],function (err, result, fields) {});
 		res.send("<h1>Sorry To See You Go!</h1><a href='/'>Take Me Home</a>");
-	});
-});
-
-app.post('/movefile',function(req,res){
-	if(!req.cookies.token){
-		res.status(403).send("{\"type\":\"error\",\"response\":\"Not Logged In, Please Try Logging In Again\"}");
-		return 0;
-	} if(!req.body.fileId || !req.body.newParent){
-		res.status(400).send("{\"type\":\"error\",\"response\":\"Empty Field(s)\"}");
-		return 0;
-	}
-	con.query("SELECT * FROM `users` WHERE `token`=?", [req.cookies.token], function (err, result, fields) {
-		if(result.length == 0){
-			res.status(403).send("{\"type\":\"error\",\"response\":\"Invalid Token, Try Logging In Again\"}");
-			return 0;
-		}
-		con.query("SELECT * FROM `files` WHERE `pUId`=? AND `fId`=?",[result[0].uId,req.body.fileId],function(err,result,fields){
-			if(result.length == 0){
-	                	res.status(403).send("{\"type\":\"error\",\"response\":\"You Do Not Own This File Or It Does Not Exist\"}");
-				return 0;
-			}
-			var fileToBeMoved = result[0].fId;
-			var fileName = result[0].fName;
-			if(req.body.newParent.toString() !== "0"){
-				con.query("SELECT * FROM `folders` WHERE `pUId`=? AND `fId`=?",[result[0].pUId,req.body.newParent],function(err,result,fields){
-					if(result.length == 0){
-		                		res.status(403).send("{\"type\":\"error\",\"response\":\"You Do Not Own This Folder Or It Does Not Exist\"}");
-						return 0;
-					}
-					con.query("UPDATE `files` SET `pFolder`=? WHERE `fId`=? AND `pUId`=?",[result[0].fId,fileToBeMoved,result[0].pUId],function(err,result,fields){});
-					res.send("{\"type\":\"success\",\"response\":\"File Move Successfully\",\"data\":{\"fName\":\"" + fileName+ "\",\"fId\":\"" + fileToBeMoved + "\"}}");
-				});
-			} else {
-				con.query("UPDATE `files` SET `pFolder`=? WHERE `fId`=? AND `pUId`=?",[req.body.newParent,fileToBeMoved,result[0].pUId],function(err,result,fields){});
-				res.send("{\"type\":\"success\",\"response\":\"File Move Successfully\",\"data\":{\"fName\":\"" + fileName+ "\",\"fId\":\"" + fileToBeMoved + "\"}}");
-			}
-		});
-	});
-});
-
-app.post('/movefolder',function(req,res){
-	if(!req.cookies.token){
-		res.status(403).send("{\"type\":\"error\",\"response\":\"Not Logged In, Please Try Logging In Again\"}");
-		return 0;
-	} if(!req.body.folderId || !req.body.newParent){
-		res.status(400).send("{\"type\":\"error\",\"response\":\"Empty Field(s)\"}");
-		return 0;
-	}
-	con.query("SELECT * FROM `users` WHERE `token`=?", [req.cookies.token], function (err, result, fields) {
-		if(result.length == 0){
-			res.status(403).send("{\"type\":\"error\",\"response\":\"Invalid Token, Try Logging In Again\"}");
-			return 0;
-		}
-		con.query("SELECT * FROM `folders` WHERE `pUId`=? AND `fId`=?",[result[0].uId,req.body.folderId],function(err,result,fields){
-			if(result.length == 0){
-	                	res.status(403).send("{\"type\":\"error\",\"response\":\"You Do Not Own This File Or It Does Not Exist\"}");
-				return 0;
-			}
-			var folderToBeMoved = result[0].fId;
-			var folderName = result[0].fName;
-			if(req.body.newParent.toString() !== "0"){
-				con.query("SELECT * FROM `folders` WHERE `pUId`=? AND `fId`=?",[result[0].pUId,req.body.newParent],function(err,result,fields){
-					if(result.length == 0){
-		                		res.status(403).send("{\"type\":\"error\",\"response\":\"You Do Not Own This Folder Or It Does Not Exist\"}");
-						return 0;
-					}
-					con.query("UPDATE `folders` SET `pFolder`=? WHERE `fId`=? AND `pUId`=?",[result[0].fId,folderToBeMoved,result[0].pUId],function(err,result,fields){});
-					res.send("{\"type\":\"success\",\"response\":\"Folder Move Successfully\",\"data\":{\"fName\":\"" + folderName+ "\",\"fId\":\"" + folderToBeMoved + "\"}}");
-				});
-			} else {
-				con.query("UPDATE `folders` SET `pFolder`=? WHERE `fId`=? AND `pUId`=?",[req.body.newParent,folderToBeMoved,result[0].pUId],function(err,result,fields){});
-				res.send("{\"type\":\"success\",\"response\":\"Folder Move Successfully\",\"data\":{\"fName\":\"" + folderName+ "\",\"fId\":\"" + folderToBeMoved + "\"}}");
-			}
-		});
 	});
 });
 
