@@ -167,10 +167,10 @@
 				clearInterval();
 			} else if(selectedForMove){
 				var t = selectedForMove;
-				selectedFolders.forEach((e)=>{
+				selectedFolders.forEach(async function(e){
 					await moveFolder(e,t);
 				});
-				selectedFiles.forEach((e)=>{
+				selectedFiles.forEach(async function(e){
 					await moveFile(e,t);
 				});
 				selectedForMove = "";
