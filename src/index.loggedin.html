@@ -15,15 +15,19 @@
 		top:0;
 		right:0;
 	}
+	.select{
+		display: none;
+	}
 </style>
 <div class="userhelp"><p id="username">You Are Logged In As </p><button onclick='document.cookie = "token=;expires=Thu, 01-Jan-70 00:00:01 GMT;"; window.location.reload()'>Log Out</button><br><button onclick="if(confirm('Are You Sure You Want To Delete Your Account?')){window.location=window.location.origin+'/deleteaccount';}">Delete Account</button></div>
 <div class="uipopup" id="popupdiv"></div>
 <h1>dRive</h1>
 <hr>
-<div id="multitools" style="visibility: hidden"><button onclick="deleteMulti()">Delete</button></div>
+<div id="multitools" style="visibility: hidden"><button onclick="deleteMulti()">Delete</button><button onclick="moveMulti()">Move To</button></div>
 <div id="f0">
 </div>
 <script>
+	var selectedForMove = "";
 	var selectedFiles = [];
 	var selectedFolders = [];
 	async function deleteFile(file){
@@ -41,6 +45,7 @@
 			document.getElementById("file"+file.toString()).parentNode.removeChild(document.getElementById("file"+file.toString()));
 			document.getElementById("file!"+file.toString()).parentNode.removeChild(document.getElementById("file!"+file.toString()));
 			document.getElementById("file@"+file.toString()).parentNode.removeChild(document.getElementById("file@"+file.toString()));
+			document.getElementById("file#"+file.toString()).parentNode.removeChild(document.getElementById("file#"+file.toString()));
 			document.getElementById("file$"+file.toString()).parentNode.removeChild(document.getElementById("file$"+file.toString()));
 			document.getElementById("file%"+file.toString()).parentNode.removeChild(document.getElementById("file%"+file.toString()));
 		} else {
@@ -64,22 +69,124 @@
 			alert(result["response"]);
 		}
 	}
-	async function moveFolder(folder){
+	async function moveFolder(folder,newParent){
 		var response = await fetch("/movefolder", {method: 'POST',
 			headers:{
 				'Accept': 'application/json',
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				folderId: folder
+				folderId: folder,
+				newParent: newParent
 			})
 		});
 		var result = await response.json();
 		if(result["type"] == "success"){
-			document.getElementById("f"+folder.toString()).parentNode.removeChild(document.getElementById("f"+folder.toString()));
+			var newParentElement = document.getElementById("f"+newParent.toString());
+			var oldElement = document.getElementById("f"+folder.toString());
+			var oldParentElement = oldElement.parentNode;
+			var newElement = oldElement.cloneNode(true);
+			oldParentElement.removeChild(oldElement);
+			newParentElement.appendChild(newElement);
+			location.reload()
 		} else {
 			alert(result["response"]);
 		}
+	}
+	async function moveFile(file,newParent){
+		var response = await fetch("/movefile", {method: 'POST',
+			headers:{
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				fileId: file,
+				newParent: newParent
+			})
+		});
+		var result = await response.json();
+		if(result["type"] == "success"){
+			// the result will include the name of the file etc so that you don't have to preserve anything from the previous existence of the file in HTML
+			document.getElementById("file"+file.toString()).parentNode.removeChild(document.getElementById("file"+file.toString()));
+			document.getElementById("file!"+file.toString()).parentNode.removeChild(document.getElementById("file!"+file.toString()));
+			document.getElementById("file@"+file.toString()).parentNode.removeChild(document.getElementById("file@"+file.toString()));
+			document.getElementById("file#"+file.toString()).parentNode.removeChild(document.getElementById("file#"+file.toString()));
+			document.getElementById("file$"+file.toString()).parentNode.removeChild(document.getElementById("file$"+file.toString()));
+			document.getElementById("file%"+file.toString()).parentNode.removeChild(document.getElementById("file%"+file.toString()));
+			var fName = result["data"]["fName"];
+			var fId = result["data"]["fId"];
+			var parentFolder = document.getElementById("f"+newParent.toString());
+			var fileLink = document.createElement("a");
+			fileLink.target = "_blank";
+			var shareButton = document.createElement("button");
+			var delFileButton = document.createElement("button");
+			var notification = document.createElement("p");
+			delFileButton.innerHTML = "\uD83D\uDDD1";
+			shareButton.innerHTML = "\uD83D\uDD17";
+			fileLink.id = "file"+fId.toString();
+			fileLink.href = "/file/" + uId.toString() + "/" + fId + "/" + fName;
+			fileLink.innerHTML = decodeURIComponent(fName)+" ";
+			fileLink.style.marginLeft = "30px";
+			delFileButton.id = "file!"+fId.toString();
+			shareButton.id = "file@"+fId.toString();
+			notification.id = "file#"+fId.toString();
+			notification.style.display="inline";
+			shareButton.addEventListener('click',async function (){
+				navigator.clipboard.writeText(window.location+"file/" + uId.toString() + "/" + fId + "/" + fName);
+					notification.innerHTML = " Link Copied To Clipboard";
+					await sleep(1000);
+				notification.innerHTML = "";
+			});
+			delFileButton.addEventListener('click', async function(){
+				deleteFile(fId);
+			});
+			var br = document.createElement("br");
+			br.id = "file$"+fId.toString();
+			var checkbox = document.createElement("input");
+			checkbox.id = "file%"+fId.toString();
+			checkbox.type = "checkbox";
+			checkbox.addEventListener('click',()=>{
+				selectedFile(fId.toString(),checkbox);
+			});
+			parentFolder.appendChild(checkbox);
+			parentFolder.appendChild(fileLink);
+			parentFolder.appendChild(shareButton);
+			parentFolder.appendChild(delFileButton);
+			parentFolder.appendChild(notification);
+			parentFolder.appendChild(br);
+		} else {
+			alert(result["response"]);
+		}
+	}
+	function moveMulti(){
+		var elements = document.querySelectorAll('.select');
+		for(var i=0; i<elements.length; i++){
+			elements[i].style.display = "inline";
+		}
+		setInterval(async function(){
+			if(selectedForMove == "Cancel"){
+				clearInterval();
+			} else if(selectedForMove){
+				var t = selectedForMove;
+				selectedFolders.forEach((e)=>{
+					moveFolder(e,t);
+				});
+				selectedFiles.forEach((e)=>{
+					moveFile(e,t);
+				});
+				selectedForMove = "";
+				var elements = document.querySelectorAll('.select');
+				for(var i=0; i<elements.length; i++){
+					elements[i].style.display = "none";
+				}
+     				document.getElementById("multitools").style.visibility = "hidden";
+				selectedForMove = "";
+				selectedFiles = [];
+				selectedFolders = [];
+
+				clearInterval();
+			}
+		},100);
 	}
 	function deleteMulti(){
 		selectedFiles.forEach((e)=>{
@@ -105,6 +212,7 @@
 			selectedFiles = selectedFiles.filter(function(e) { return e !== file});
 			if(selectedFolders.length+selectedFiles.length < 1){
 				document.getElementById("multitools").style.visibility = "hidden";
+				selectedForMove="Cancel";
 			}
 		}
 	}
@@ -116,6 +224,7 @@
 			selectedFolders = selectedFolders.filter(function(e) { return e !== folder});
 			if(selectedFolders.length+selectedFiles.length < 1){
 				document.getElementById("multitools").style.visibility = "hidden";
+				selectedForMove="Cancel";
 			}
 		}
 	}
@@ -333,6 +442,12 @@
 		delFolderButton.innerHTML = "\uD83D\uDDD1";
 		addFolderButton.innerHTML = "+\uD83D\uDCC1";
 		addFileButton.innerHTML = "+\uD83D\uDCC4";
+		var selectForMoveTo = document.createElement("button");
+		selectForMoveTo.className = "select";
+		selectForMoveTo.addEventListener('click',()=>{
+			selectedForMove = currFolder.toString();
+		});
+		selectForMoveTo.innerText = "Move Here";
 		if(currFolder != 0){
 			var checkbox = document.createElement("input");
 			checkbox.type = "checkbox";
@@ -351,6 +466,7 @@
 			rootDiv.appendChild(delFolderButton);
 			rootDiv.appendChild(notification);
 		}
+		rootDiv.appendChild(selectForMoveTo);
 		rootDiv.appendChild(document.createElement("br"));
 		console.log("On Folder " + currFolder);
 		Object.keys(currPosition).forEach(function(child){
