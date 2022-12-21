@@ -88,7 +88,6 @@
 			var newElement = oldElement.cloneNode(true);
 			oldParentElement.removeChild(oldElement);
 			newParentElement.appendChild(newElement);
-			location.reload()
 		} else {
 			alert(result["response"]);
 		}
@@ -169,10 +168,10 @@
 			} else if(selectedForMove){
 				var t = selectedForMove;
 				selectedFolders.forEach((e)=>{
-					moveFolder(e,t);
+					await moveFolder(e,t);
 				});
 				selectedFiles.forEach((e)=>{
-					moveFile(e,t);
+					await moveFile(e,t);
 				});
 				selectedForMove = "";
 				var elements = document.querySelectorAll('.select');
@@ -182,6 +181,9 @@
      				document.getElementById("multitools").style.visibility = "hidden";
 				selectedForMove = "";
 				selectedFiles = [];
+				if(selectedFolders){
+					location.reload()
+				}
 				selectedFolders = [];
 
 				clearInterval();
