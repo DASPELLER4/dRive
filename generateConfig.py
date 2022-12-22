@@ -35,7 +35,7 @@ except:
     dbCursor.execute("CREATE DATABASE `" + database + "`")
     dRiveDB = mysql.connector.connect(host=host,user=user,password=password,unix_socket=port,database=database)
     dbCursor = dRiveDB.cursor()
-    dbCursor.execute("CREATE TABLE `users` (`uId` INT(20) NOT NULL AUTO_INCREMENT,`uName` VARCHAR(30) NOT NULL,`password` VARCHAR(256),`token` VARCHAR(256),PRIMARY KEY (`uId`));CREATE TABLE `files` (`fId` VARCHAR(256) NOT NULL,`fName` VARCHAR(256),`pUId` INT(20),`pFolder` INT(20),`mimetype` VARCHAR(32), PRIMARY KEY (`fId`));CREATE TABLE `folders` (`fId` INT(20) NOT NULL AUTO_INCREMENT,`fName` VARCHAR(256),`pUId` INT(20),`fShare` VARCHAR(64),`pFolder` INT(20),PRIMARY KEY (`fId`));")
+    dbCursor.execute("CREATE TABLE `users` (`uId` INT(20) NOT NULL AUTO_INCREMENT,`uName` VARCHAR(30) NOT NULL,`password` VARCHAR(256),`token` VARCHAR(256),PRIMARY KEY (`uId`));CREATE TABLE `files` (`fId` VARCHAR(256) NOT NULL,`fName` VARCHAR(256),`pUId` INT(20),`pFolder` INT(20),`mimetype` VARCHAR(128), PRIMARY KEY (`fId`));CREATE TABLE `folders` (`fId` INT(20) NOT NULL AUTO_INCREMENT,`fName` VARCHAR(256),`pUId` INT(20),`fShare` VARCHAR(64),`pFolder` INT(20),PRIMARY KEY (`fId`));")
     exit(0)
 fileContent = "module.exports = {host:\""+host+"\",user:\""+user+"\",password:\""+password+"\",port:\""+port+"\",db:\""+database+"\",downloadDir:\"" + downloaddir+ "\",cert:\"" + cert + "\",key:\"" + key + "\"}"
 with open("config.js","w+") as File:
@@ -46,5 +46,5 @@ dbCursor = dRiveDB.cursor()
 dbCursor.execute("CREATE DATABASE `" + database + "`")
 dRiveDB = mysql.connector.connect(host=host,user=user,password=password,port=int(port),database=database)
 dbCursor = dRiveDB.cursor()
-dbCursor.execute("CREATE TABLE `users` (`uId` INT(20) NOT NULL AUTO_INCREMENT,`uName` VARCHAR(30) NOT NULL,`password` VARCHAR(256),`token` VARCHAR(256),PRIMARY KEY (`uId`));CREATE TABLE `files` (`fId` VARCHAR(256) NOT NULL,`fName` VARCHAR(256) SET utf8 COLLATE utf8_unicode_ci,`pUId` INT(20),`pFolder` INT(20),`mimetype` VARCHAR(32), PRIMARY KEY (`fId`));CREATE TABLE `folders` (`fId` INT(20) NOT NULL AUTO_INCREMENT,`fName` VARCHAR(256) SET utf8 COLLATE utf8_unicode_ci,`pUId` INT(20),`fShare` VARCHAR(64),`pFolder` INT(20),PRIMARY KEY (`fId`));")
+dbCursor.execute("CREATE TABLE `users` (`uId` INT(20) NOT NULL AUTO_INCREMENT,`uName` VARCHAR(30) NOT NULL,`password` VARCHAR(256),`token` VARCHAR(256),PRIMARY KEY (`uId`));CREATE TABLE `files` (`fId` VARCHAR(256) NOT NULL,`fName` VARCHAR(256) SET utf8 COLLATE utf8_unicode_ci,`pUId` INT(20),`pFolder` INT(20),`mimetype` VARCHAR(128), PRIMARY KEY (`fId`));CREATE TABLE `folders` (`fId` INT(20) NOT NULL AUTO_INCREMENT,`fName` VARCHAR(256) SET utf8 COLLATE utf8_unicode_ci,`pUId` INT(20),`fShare` VARCHAR(64),`pFolder` INT(20),PRIMARY KEY (`fId`));")
 print("Setup Completed! You can now run:\n\tsudo node index.js")
