@@ -416,6 +416,13 @@
 			newDiv.appendChild(shareFolderButton);
 			newDiv.appendChild(delFolderButton);
 			newDiv.appendChild(notification);
+			var selectForMoveTo = document.createElement("button");
+			selectForMoveTo.className = "select";
+			selectForMoveTo.addEventListener('click',()=>{
+				selectedForMove = result["data"]["fId"].toString();
+			});
+			selectForMoveTo.innerText = "Move Here";
+			newDiv.appendChild(selectForMoveTo);
 			newDiv.id = "f"+result["data"]["fId"].toString();
 			newDiv.style.marginLeft = "30px";
 			rootDiv.appendChild(newDiv);
