@@ -2,13 +2,11 @@
 <title>dRive</title>
 <style>
 	.uipopup{
-		position:absolute;
-		top:25%;
-		width:50%;
-		left:50%;
-		z-index:1000;
-		margin-left: -25%;
-		overflow:hidden;
+		position:sticky;
+		bottom:50%;
+		width: 30%;
+		margin-left: 30%;
+		margin-right: 30%;
 	}
 	.userhelp{
 		position:absolute;
@@ -21,12 +19,12 @@
 	}
 </style>
 <div class="userhelp"><p id="username">You Are Logged In As </p><button onclick='document.cookie = "token=;expires=Thu, 01-Jan-70 00:00:01 GMT;"; window.location.reload()'>Log Out</button><br><button onclick="if(confirm('Are You Sure You Want To Delete Your Account?')){window.location=window.location.origin+'/deleteaccount';}">Delete Account</button></div>
-<div class="uipopup" id="popupdiv"></div>
 <h1>dRive</h1>
 <hr>
 <div id="multitools" style="visibility: hidden; position: -webkit-sticky; position: sticky; top:20; margin-left:20px;padding-left:5px; padding-top:5px; padding-right:5px; padding-bottom:5px;"><button onclick="deleteMulti()">Delete</button><button onclick="moveMulti()">Move To</button><p style="display: inline;background-color:white" id="selectedCount"></p></div>
 <div id="f0">
 </div>
+<div class="uipopup" id="popupdiv"></div>
 <script>
 	function sleep(ms) {
 		return new Promise(resolve => setTimeout(resolve, ms));
